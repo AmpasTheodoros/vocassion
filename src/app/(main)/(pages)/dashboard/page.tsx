@@ -15,6 +15,8 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
+import ChatComponent from '@/components/chat/ChatComponent';
+import LeaderboardComponent from '@/components/leaderboard/LeaderboardComponent';
 
 interface Task {
   id: string;
@@ -221,6 +223,10 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+      <div className="flex justify-around mt-8">
+        <ChatComponent />
+        <LeaderboardComponent />
       </div>
       <p>Let&apos;s continue our journey</p>
     </div>

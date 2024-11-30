@@ -8,6 +8,8 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import IkigaiAssessment from "@/components/ikigai/ikigai-assessment";
 import confetti from "canvas-confetti";
+import ChatComponent from '@/components/chat/ChatComponent';
+import LeaderboardComponent from '@/components/leaderboard/LeaderboardComponent';
 
 interface AssessmentData {
   [key: string]: {
@@ -20,7 +22,7 @@ export default function OnboardingPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const totalSteps = 3;
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -30,81 +32,154 @@ export default function OnboardingPage() {
 
   const handleComplete = async (assessmentData: AssessmentData) => {
     try {
-      const response = await fetch("/api/ikigai/map", {
+      setLoading(true);
+
+      // Ensure user profile exists
+      const profileResponse = await fetch("/api/profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(assessmentData),
+        body: JSON.stringify({
+          name: user?.firstName || "User",
+          imageUrl: user?.imageUrl || "",
+          email: user?.emailAddresses[0]?.emailAddress || "",
+        }),
       });
 
-      if (response.ok) {
-        // Trigger confetti animation
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { x: 0.5, y: 0.6 },
-        });
-
-        // Award achievement
-        await fetch("/api/gamification/progress", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            achievementType: "COMPLETED_IKIGAI_ASSESSMENT",
-            userId: user?.id,
-          }),
-        });
-
-        router.push("/dashboard");
+      if (!profileResponse.ok) {
+        const error = await profileResponse.text();
+        if (!error.includes("Profile already exists")) {
+          throw new Error("Failed to create profile");
+        }
       }
+
+      // Format the data for the API
+      const formattedData = {
+        passion: assessmentData.passion?.map(item => item.answer) || [],
+        skills: assessmentData.skills?.map(item => item.answer) || [],
+        mission: assessmentData.mission?.map(item => item.answer) || [],
+        vocation: assessmentData.vocation?.map(item => item.answer) || []
+      };
+
+      // Save Ikigai map data
+      const mapResponse = await fetch("/api/ikigai/map", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formattedData),
+      });
+
+      if (!mapResponse.ok) {
+        throw new Error("Failed to save Ikigai map");
+      }
+
+      // Award initial achievements
+      await fetch("/api/gamification/progress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          type: "ACHIEVEMENT",
+          title: "Ikigai Explorer",
+          description: "Completed your first Ikigai assessment",
+          points: 100
+        }),
+      });
+
+      // Show success message with confetti
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { x: 0.5, y: 0.6 }
+      });
+
+      // Move to dashboard after a brief delay
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 2000);
+
     } catch (error) {
-      console.error("Error saving Ikigai map:", error);
+      console.error("Error in onboarding:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const renderStep = () => {
+    switch (step) {
+      case 1:
+        return (
+          <Card className="p-6 space-y-4">
+            <div className="text-center space-y-2">
+              <h1 className="text-2xl font-bold">Welcome to Your Journey!</h1>
+              <p className="text-muted-foreground">
+                Let&apos;s discover your Ikigai - your reason for being
+              </p>
+            </div>
+            <Button 
+              className="w-full"
+              onClick={() => setStep(2)}
+              size="lg"
+            >
+              Begin Discovery
+            </Button>
+          </Card>
+        );
+      case 2:
+        return (
+          <div className="space-y-4">
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Your Ikigai Assessment</h2>
+              <IkigaiAssessment onComplete={handleComplete} />
+            </Card>
+          </div>
+        );
+      case 3:
+        return (
+          <Card className="p-6 text-center space-y-4">
+            <h2 className="text-2xl font-bold">Congratulations! 🎉</h2>
+            <p className="text-muted-foreground">
+              Your Ikigai map is being created. You&apos;ve earned your first achievement!
+            </p>
+            {loading ? (
+              <div className="flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Redirecting to your dashboard...
+              </p>
+            )}
+            {step === 3 && (
+              <div className="flex justify-around mt-8">
+                <ChatComponent />
+                <LeaderboardComponent />
+              </div>
+            )}
+          </Card>
+        );
+    }
+  };
+
+  if (!isLoaded || !user) {
+    return null;
+  }
+
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <Progress value={(step / totalSteps) * 100} className="mb-8" />
-      
-      <Card className="p-6">
-        {step === 1 && (
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-4">It&apos;s time to start your journey</h1>
-            <p className="text-lg mb-6">
-              Let&apos;s get started with your goals. Through this engaging process, we&apos;ll help you uncover what makes you truly come alive.
-            </p>
-            <Button onClick={() => setStep(2)} size="lg">
-              Start Discovery
-            </Button>
-          </div>
-        )}
-
-        {step === 2 && (
-          <IkigaiAssessment
-            onComplete={(data) => {
-              handleComplete(data);
-              setStep(3);
-            }}
-          />
-        )}
-
-        {step === 3 && (
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">
-              🎉 Congratulations! Your Ikigai Map is Ready
-            </h2>
-            <p className="mb-6">
-              We&apos;re excited to have you here. You&apos;ve taken the first step towards living a more purposeful life. You&apos;re almost there! Let&apos;s explore your personalized dashboard!
-            </p>
-            <Button onClick={() => router.push("/dashboard")} size="lg">
-              View My Dashboard
-            </Button>
-          </div>
-        )}
-      </Card>
+    <div className="container max-w-2xl mx-auto py-8 px-4 min-h-screen">
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <Progress value={(step / 3) * 100} className="w-full" />
+          <p className="text-sm text-center text-muted-foreground">
+            Step {step} of 3
+          </p>
+        </div>
+        {renderStep()}
+      </div>
     </div>
   );
 }
