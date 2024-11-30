@@ -14,7 +14,19 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Check if user needs onboarding
+    if (user && !isLoading) {
+      fetch(`/api/profile/${user.id}`).then(async (res) => {
+        if (res.ok) {
+          const profile = await res.json();
+          if (!profile.ikigaiMap) {
+            router.push('/onboarding');
+          }
+        }
+      });
+    }
+  }, [user, isLoading, router]);
 
   // Don't render anything until mounted on client
   if (!mounted) {
@@ -45,6 +57,17 @@ export default function Home() {
             <Button 
               size="lg" 
               onClick={() => router.push(`/profile/${getProfileSlug()}`)}
+            >
+              {isLoading ? "Loading..." : "Go to My Profile"}
+            </Button>
+          </div>
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              Your profile: {getProfileSlug()}
+            </p>
+            <Button 
+              size="lg" 
+              onClick={() => router.push(`/onboarding`)}
             >
               {isLoading ? "Loading..." : "Go to My Profile"}
             </Button>
