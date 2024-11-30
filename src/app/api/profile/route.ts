@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
 export async function PATCH(
   req: Request
@@ -25,7 +26,17 @@ export async function PATCH(
 
     return NextResponse.json(profile);
   } catch (error) {
-    console.log("[PROFILE_PATCH]", error);
+    console.error("[PROFILE_PATCH] Error details:", error);
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        return new NextResponse("Profile already exists", { status: 409 });
+      }
+      if (error.code === 'P2025') {
+        return new NextResponse("Profile not found", { status: 404 });
+      }
+    }
+    
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
