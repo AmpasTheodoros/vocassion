@@ -3,6 +3,8 @@ import { getAuthUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { GamificationService } from '@/lib/services/gamification';
 
+export { dynamic } from './route.config';
+
 export async function GET() {
   try {
     const auth = await getAuthUser();

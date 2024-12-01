@@ -1,13 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
+import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Home() {
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useUser();
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
@@ -15,71 +16,73 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     
-    // Check if user needs onboarding
-    if (user && !isLoading) {
-      fetch(`/api/profile/${user.id}`).then(async (res) => {
+    const checkProfileAndRedirect = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const res = await fetch(`/api/profile/${user.id}`);
+        const data = await res.json();
+        
         if (res.ok) {
-          const profile = await res.json();
-          if (!profile.ikigaiMap) {
+          if (data.ikigaiMap) {
+            // If user has completed ikigai map, redirect to dashboard
+            router.push('/dashboard');
+          } else {
+            // If user exists but hasn't completed ikigai map
             router.push('/onboarding');
           }
+        } else if (res.status === 404) {
+          // If profile doesn't exist, redirect to onboarding
+          router.push('/onboarding');
         }
-      });
-    }
-  }, [user, isLoading, router]);
+      } catch (error) {
+        console.error('Error checking profile:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkProfileAndRedirect();
+  }, [user, router]);
 
   // Don't render anything until mounted on client
-  if (!mounted) {
-    return null;
-  }
-
-  const getProfileSlug = () => {
-    if (!user?.firstName || !user?.lastName) return user?.id;
-    const name = `${user.firstName} ${user.lastName}`;
-    return name
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "");
-  };
-
+  if (!mounted) return null;
+  
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <div className="flex flex-col items-center gap-6">
-        <h1 className="text-4xl font-bold">Welcome to Vocassion</h1>
-        <SignedIn>
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              Your profile: {getProfileSlug()}
-            </p>
-            <Button 
-              size="lg" 
-              onClick={() => router.push(`/profile/${getProfileSlug()}`)}
-            >
-              {isLoading ? "Loading..." : "Go to My Profile"}
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-lg">
+        <CardHeader className="text-center">
+          <CardTitle className="text-4xl font-bold mb-2">Welcome to Vocassion</CardTitle>
+          <CardDescription className="text-lg">
+            Discover your perfect career path through personalized guidance and community support
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-6">
+          <SignedIn>
+            {isLoading ? (
+              <Button disabled>
+                Loading...
+              </Button>
+            ) : (
+              <Button 
+                size="lg" 
+                onClick={() => router.push('/onboarding')}
+              >
+                Start Your Journey
+              </Button>
+            )}
+          </SignedIn>
+          <SignedOut>
+            <Button asChild size="lg">
+              <Link href="/sign-in">Get Started</Link>
             </Button>
-          </div>
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              Your profile: {getProfileSlug()}
-            </p>
-            <Button 
-              size="lg" 
-              onClick={() => router.push(`/onboarding`)}
-            >
-              {isLoading ? "Loading..." : "Go to My Profile"}
-            </Button>
-          </div>
-        </SignedIn>
-        <SignedOut>
-          <Button asChild size="lg">
-            <Link href="/sign-in">Sign In</Link>
-          </Button>
-        </SignedOut>
-        <UserButton/>
-      </div>
+          </SignedOut>
+        </CardContent>
+      </Card>
     </div>
   );
 }

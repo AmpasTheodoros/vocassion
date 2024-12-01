@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 
+export { dynamic } from './route.config';
+
 export async function GET() {
   try {
     const auth = await getAuthUser();

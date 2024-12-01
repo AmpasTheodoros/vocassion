@@ -41,7 +41,7 @@ export function ProfileEditor({ profile }: ProfileEditorProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: profile.name,
+      name: profile.name || "",
       headline: profile.headline || "",
       bio: profile.bio || "",
       location: profile.location || "",

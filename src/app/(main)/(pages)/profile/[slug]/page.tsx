@@ -35,8 +35,8 @@ export default async function Page({
         <CardHeader className="relative">
           <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
             <Avatar className="w-32 h-32 border-4 border-white">
-              <AvatarImage src={profile.imageUrl} alt={profile.name} />
-              <AvatarFallback>{profile.name[0]}</AvatarFallback>
+              <AvatarImage src={profile.imageUrl ?? undefined} alt={profile.name ?? ''} />
+              <AvatarFallback>{(profile.name ?? '')[0]}</AvatarFallback>
             </Avatar>
             {isOwnProfile && (
               <Button variant="outline" asChild className="ml-auto">
