@@ -11,8 +11,8 @@ export async function getPersonalizedResources(userId: string): Promise<Resource
 
   // Combine all Ikigai areas for matching
   const relevantAreas = [
-    ...ikigaiMap.passions,
-    ...ikigaiMap.skills,
+    ...ikigaiMap.passion,
+    ...ikigaiMap.profession,
     ...ikigaiMap.mission,
     ...ikigaiMap.vocation
   ];
@@ -42,8 +42,8 @@ export async function getSimilarStories(userId: string): Promise<Story[]> {
   if (!ikigaiMap) return [];
 
   const relevantAreas = [
-    ...ikigaiMap.passions,
-    ...ikigaiMap.skills,
+    ...ikigaiMap.passion,
+    ...ikigaiMap.profession,
     ...ikigaiMap.mission,
     ...ikigaiMap.vocation
   ];
@@ -79,8 +79,8 @@ export async function getRelevantMiniGames(userId: string): Promise<MiniGame[]> 
   if (!ikigaiMap) return [];
 
   const relevantAreas = [
-    ...ikigaiMap.passions,
-    ...ikigaiMap.skills,
+    ...ikigaiMap.passion,
+    ...ikigaiMap.profession,
     ...ikigaiMap.mission,
     ...ikigaiMap.vocation
   ];

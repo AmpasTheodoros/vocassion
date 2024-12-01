@@ -59,6 +59,28 @@ export const CORE_DRIVES: CoreDrive[] = [
 ];
 
 export class GamificationService {
+  // Add points to user's total
+  static async addPoints(userId: string, points: number) {
+    // Create a new reward record for the points
+    await db.reward.create({
+      data: {
+        userId,
+        points,
+        description: "Points awarded",
+      }
+    });
+
+    // Get total points from rewards
+    const rewards = await db.reward.findMany({
+      where: { userId },
+      select: { points: true }
+    });
+
+    const totalPoints = rewards.reduce((sum, reward) => sum + reward.points, 0);
+
+    return totalPoints;
+  }
+
   // Award points and create achievement for completing Ikigai sections
   static async awardIkigaiProgress(userId: string, section: string) {
     const points = 25; // 25 points per section
@@ -76,8 +98,8 @@ export class GamificationService {
       where: { userId },
     });
 
-    if (ikigaiMap?.passions.length && 
-        ikigaiMap?.skills.length && 
+    if (ikigaiMap?.passion.length && 
+        ikigaiMap?.profession.length && 
         ikigaiMap?.mission.length && 
         ikigaiMap?.vocation.length) {
       await db.achievement.create({
@@ -93,12 +115,12 @@ export class GamificationService {
   }
 
   // Maintain and update user streaks
-  static async updateStreak(userId: string, type: string) {
+  static async updateStreak(profileId: string, type: string) {
     const today = new Date();
     const streak = await db.streak.findUnique({
       where: {
         userId_type: {
-          userId,
+          userId: profileId,
           type,
         },
       },
@@ -107,7 +129,7 @@ export class GamificationService {
     if (!streak) {
       await db.streak.create({
         data: {
-          userId,
+          userId: profileId,
           type,
           currentCount: 1,
           longestCount: 1,
@@ -130,7 +152,7 @@ export class GamificationService {
       await db.streak.update({
         where: {
           userId_type: {
-            userId,
+            userId: profileId,
             type,
           },
         },
@@ -143,16 +165,16 @@ export class GamificationService {
 
       // Award streak achievements
       if (currentCount === 7) {
-        await this.awardStreakAchievement(userId, '7-day');
+        await this.awardStreakAchievement(profileId, '7-day');
       } else if (currentCount === 30) {
-        await this.awardStreakAchievement(userId, '30-day');
+        await this.awardStreakAchievement(profileId, '30-day');
       }
     } else if (daysSinceLastCheckin > 1) {
       // Streak broken
       await db.streak.update({
         where: {
           userId_type: {
-            userId,
+            userId: profileId,
             type,
           },
         },
@@ -165,7 +187,7 @@ export class GamificationService {
   }
 
   // Award streak-based achievements
-  private static async awardStreakAchievement(userId: string, type: '7-day' | '30-day') {
+  private static async awardStreakAchievement(profileId: string, type: '7-day' | '30-day') {
     const achievements = {
       '7-day': {
         title: 'Week Warrior',
@@ -183,7 +205,7 @@ export class GamificationService {
 
     await db.achievement.create({
       data: {
-        userId,
+        userId: profileId,
         title: achievement.title,
         description: achievement.description,
         category: 'development',
@@ -193,17 +215,17 @@ export class GamificationService {
   }
 
   // Get user's total points
-  static async getUserPoints(userId: string) {
+  static async getUserPoints(profileId: string) {
     const rewards = await db.reward.findMany({
-      where: { userId },
+      where: { userId: profileId },
     });
 
     return rewards.reduce((total, reward) => total + reward.points, 0);
   }
 
   // Get user's level based on points
-  static async getUserLevel(userId: string) {
-    const points = await this.getUserPoints(userId);
+  static async getUserLevel(profileId: string) {
+    const points = await this.getUserPoints(profileId);
     return Math.floor(points / 100) + 1; // Every 100 points = 1 level
   }
 }

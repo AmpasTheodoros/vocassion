@@ -77,15 +77,15 @@ export async function getPersonalizedContent() {
 
   // Get recommendations based on ikigai map
   const recommendations = await getPersonalizedRecommendations(
-    user.ikigaiMap.passions,
-    user.ikigaiMap.skills
+    user.ikigaiMap.passion,
+    user.ikigaiMap.profession
   );
 
   // Generate stories based on passions
-  const stories = await generateInspirationalStories(user.ikigaiMap.passions);
+  const stories = await generateInspirationalStories(user.ikigaiMap.passion);
 
   // Create mini-games based on skills
-  const games = await createMiniGames(user.ikigaiMap.skills);
+  const games = await createMiniGames(user.ikigaiMap.profession);
 
   return {
     recommendations,

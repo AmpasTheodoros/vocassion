@@ -21,6 +21,7 @@
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-popover": "^1.1.2",
     "@radix-ui/react-progress": "^1.1.0",
+    "@radix-ui/react-radio-group": "^1.2.1",
     "@radix-ui/react-scroll-area": "^1.2.1",
     "@radix-ui/react-select": "^2.1.2",
     "@radix-ui/react-slider": "^1.2.1",
@@ -30,6 +31,8 @@
     "@radix-ui/react-tooltip": "^1.1.4",
     "@types/socket.io": "^3.0.1",
     "@types/socket.io-client": "^1.4.36",
+    "@types/uuid": "^10.0.0",
+    "axios": "^1.7.8",
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -49,6 +52,7 @@
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.0.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -56,6 +60,8 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
+    "@typescript-eslint/parser": "^8.16.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.1.0",
     "postcss": "^8",

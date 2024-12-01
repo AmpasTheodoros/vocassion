@@ -1,6 +1,4 @@
-"use client"
-
-// Inspired by react-hot-toast library
+// Copied from shadcn/ui (https://ui.shadcn.com/docs/components/toast)
 import * as React from "react"
 
 import type {
@@ -18,7 +16,14 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement
 }
 
-const _actionTypes = {
+type ActionType = {
+  ADD_TOAST: "ADD_TOAST"
+  UPDATE_TOAST: "UPDATE_TOAST"
+  DISMISS_TOAST: "DISMISS_TOAST"
+  REMOVE_TOAST: "REMOVE_TOAST"
+}
+
+const _actionTypes: ActionType = {
   ADD_TOAST: "ADD_TOAST",
   UPDATE_TOAST: "UPDATE_TOAST",
   DISMISS_TOAST: "DISMISS_TOAST",
@@ -28,11 +33,9 @@ const _actionTypes = {
 let count = 0
 
 function genId() {
-  count = (count + 1) % Number.MAX_SAFE_INTEGER
+  count = (count + 1) % Number.MAX_VALUE
   return count.toString()
 }
-
-type ActionType = typeof _actionTypes
 
 type Action =
   | {

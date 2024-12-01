@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import Pusher from 'pusher-js';
 import { useUser } from "@clerk/nextjs";

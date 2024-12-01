@@ -82,6 +82,8 @@ model Achievement {
   points      Int
   unlockedAt  DateTime @default(now())
   user        Profile  @relation(fields: [userId], references: [userId])
+
+  @@unique([userId, title], name: "userId_title")
 }
 
 model JournalEntry {

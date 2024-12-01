@@ -6,7 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { Brain, Briefcase, Heart, Bell, Calendar, Settings2, BarChart3 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from 'next/image';
-import { IkigaiMap } from "@/components/ikigai/ikigai-map";
+import { IkigaiMap } from "@/components/features/ikigai/ikigai-map";
 
 interface Resource {
   id: string;

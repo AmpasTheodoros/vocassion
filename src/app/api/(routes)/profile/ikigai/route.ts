@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
+import { auth } from '@clerk/nextjs/server';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(_request: Request) {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the profile with ikigai data
     const profile = await db.profile.findUnique({
       where: {
         userId,
@@ -22,21 +21,19 @@ export async function GET() {
       },
     });
 
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    if (!profile?.ikigaiMap) {
+      return NextResponse.json({}, { status: 404 });
     }
 
     return NextResponse.json({
-      profile: {
-        id: profile.id,
-        userId: profile.userId,
-      },
-      ikigaiMap: profile.ikigaiMap,
+      passion: profile.ikigaiMap.passion,
+      mission: profile.ikigaiMap.mission,
+      vocation: profile.ikigaiMap.vocation,
     });
   } catch (error) {
-    console.error('Debug error:', error);
+    console.error('Error fetching Ikigai data:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch debug data' },
+      { error: 'Failed to fetch Ikigai data' },
       { status: 500 }
     );
   }

@@ -24,6 +24,7 @@ export const initialProfile = async () => {
 
   const newProfile = await db.profile.create({
     data: {
+      id: user.id,
       userId: user.id,
       name,
       username: `${user.firstName ?? "user"}${user.id.slice(0, 8)}`.toLowerCase(),
