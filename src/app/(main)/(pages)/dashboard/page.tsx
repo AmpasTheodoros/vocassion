@@ -205,6 +205,15 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           <ActionSteps />
+          <Card>
+            <CardHeader>
+              <CardTitle>Leaderboard</CardTitle>
+              <CardDescription>See how you compare with others</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LeaderboardComponent />
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content Area */}
@@ -296,30 +305,17 @@ export default function DashboardPage() {
               />
             </CardContent>
           </Card>
+          {/* Community Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Community Chat</CardTitle>
+              <CardDescription>Connect with others on similar journeys</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChatComponent />
+            </CardContent>
+          </Card>
         </div>
-      </div>
-
-      {/* Community Section */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Community Chat</CardTitle>
-            <CardDescription>Connect with others on similar journeys</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChatComponent />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Leaderboard</CardTitle>
-            <CardDescription>See how you compare with others</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <LeaderboardComponent />
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

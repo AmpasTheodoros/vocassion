@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
-import confetti from 'canvas-confetti';
+// import { useState } from 'react';
+// import { Button } from '@/components/ui/button';
+// import { Card } from '@/components/ui/card';
+// import { Progress } from '@/components/ui/progress';
+// import { Badge } from '@/components/ui/badge';
+// import { motion, AnimatePresence } from 'framer-motion';
+// import { Sparkles } from 'lucide-react';
+// import confetti from 'canvas-confetti';
+import { EnhancedIkigaiQuiz } from './enhanced-ikigai-quiz';
 
 interface Answer {
   question: string;
@@ -78,138 +79,17 @@ const sections = [
 ];
 
 export default function IkigaiAssessment({ onComplete }: IkigaiAssessmentProps) {
-  const [currentSection, setCurrentSection] = useState(0);
-  const [answers, setAnswers] = useState<AssessmentData>({});
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [points, setPoints] = useState(0);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [answer, setAnswer] = useState('');
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-
-  const currentSectionData = sections[currentSection];
-  const progress = ((currentSection * 4 + currentQuestion + 1) / (sections.length * 4)) * 100;
-
-  const handleAnswer = () => {
-    if (!answer.trim()) return;
-
-    const sectionId = currentSectionData.id;
-    const question = currentSectionData.questions[currentQuestion];
-    
-    setAnswers(prev => ({
-      ...prev,
-      [sectionId]: [
-        ...(prev[sectionId] || []),
-        { question, answer }
-      ]
-    }));
-
-    // Add points for completing a question
-    setPoints(prev => prev + 25);
-
-    if (currentQuestion < currentSectionData.questions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
-    } else {
-      if (currentSection < sections.length - 1) {
-        setCurrentSection(prev => prev + 1);
-        setCurrentQuestion(0);
-        // Bonus points for completing a section
-        setPoints(prev => prev + currentSectionData.points);
-        triggerCelebration();
-      } else {
-        // Final completion
-        setShowCelebration(true);
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { x: 0.5, y: 0.6 }
-        });
-        onComplete(answers);
-      }
-    }
-    
-    // Reset answer and button state
-    setAnswer('');
-    setIsButtonDisabled(true);
-  };
-
-  const triggerCelebration = () => {
-    confetti({
-      particleCount: 50,
-      spread: 50,
-      origin: { x: 0.5, y: 0.6 }
-    });
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-8 p-4"
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">{currentSectionData.title}</h2>
-          <p className="text-muted-foreground">{currentSectionData.description}</p>
-        </div>
-        <Badge variant="secondary" className="text-lg">
-          <Sparkles className="w-4 h-4 mr-2" />
-          {points} pts
-        </Badge>
+    <div className="space-y-6">
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold">Discover Your Ikigai</h1>
+        <p className="text-gray-600">
+          Answer these questions to find the intersection of what you love, what you're good at,
+          what the world needs, and what you can be paid for.
+        </p>
       </div>
-
-      <Progress value={progress} className="w-full" />
-
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={`${currentSection}-${currentQuestion}`}
-          initial={{ x: 50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: -50, opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Card className="p-6">
-            <h3 className="text-xl mb-4">
-              {currentSectionData.emoji} {currentSectionData.questions[currentQuestion]}
-            </h3>
-            <textarea
-              className="w-full p-3 rounded-md border min-h-[100px] mb-4"
-              placeholder="Type your answer here..."
-              value={answer}
-              onChange={(e) => {
-                const value = e.target.value;
-                setAnswer(value);
-                setIsButtonDisabled(value.trim().length < 10);
-              }}
-            />
-            <Button
-              onClick={handleAnswer}
-              className={`w-full ${isButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={isButtonDisabled}
-            >
-              Continue
-            </Button>
-          </Card>
-        </motion.div>
-      </AnimatePresence>
-
-      {showCelebration && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="fixed inset-0 flex items-center justify-center bg-black/50"
-        >
-          <Card className="p-8 text-center">
-            <h2 className="text-3xl font-bold mb-4">🎉 Journey Complete!</h2>
-            <p className="text-xl mb-4">Youw&apos;ve earned {points} points!</p>
-            <p className="text-muted-foreground mb-6">
-              Your Ikigai map is being generated...
-            </p>
-            <Button onClick={() => setShowCelebration(false)}>
-              View Your Ikigai Map
-            </Button>
-          </Card>
-        </motion.div>
-      )}
-    </motion.div>
+      
+      <EnhancedIkigaiQuiz onComplete={onComplete} />
+    </div>
   );
 }

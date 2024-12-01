@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import IkigaiAssessment from "@/components/ikigai/ikigai-assessment";
 import confetti from "canvas-confetti";
+import { useToast } from "@/hooks/use-toast";
 import ChatComponent from '@/components/chat/ChatComponent';
 import LeaderboardComponent from '@/components/leaderboard/LeaderboardComponent';
 
@@ -23,6 +24,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -34,36 +36,47 @@ export default function OnboardingPage() {
     try {
       setLoading(true);
 
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
       // Ensure user profile exists
-      const profileResponse = await fetch("/api/profile", {
+      const profileResponse = await fetch(`/api/profile/${user.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: user?.firstName || "User",
-          imageUrl: user?.imageUrl || "",
-          email: user?.emailAddresses[0]?.emailAddress || "",
+          name: user.firstName || "User",
+          imageUrl: user.imageUrl || "",
+          email: user.emailAddresses[0]?.emailAddress || "",
         }),
       });
 
       if (!profileResponse.ok) {
         const error = await profileResponse.text();
-        if (!error.includes("Profile already exists")) {
-          throw new Error("Failed to create profile");
-        }
+        console.error("Profile save error:", error);
+        throw new Error(`Failed to create/update profile: ${error}`);
       }
 
-      // Format the data for the API
+      // Format the data for the API - handle the new quiz format
       const formattedData = {
-        passion: assessmentData.passion?.map(item => item.answer) || [],
-        skills: assessmentData.skills?.map(item => item.answer) || [],
-        mission: assessmentData.mission?.map(item => item.answer) || [],
-        vocation: assessmentData.vocation?.map(item => item.answer) || []
+        passion: Object.values(assessmentData.passion || {})
+          .map(item => typeof item === 'string' ? item : item.answer)
+          .filter(Boolean),
+        skills: Object.values(assessmentData.profession || {})
+          .map(item => typeof item === 'string' ? item : item.answer)
+          .filter(Boolean),
+        mission: Object.values(assessmentData.mission || {})
+          .map(item => typeof item === 'string' ? item : item.answer)
+          .filter(Boolean),
+        vocation: Object.values(assessmentData.vocation || {})
+          .map(item => typeof item === 'string' ? item : item.answer)
+          .filter(Boolean)
       };
 
       // Save Ikigai map data
-      const mapResponse = await fetch("/api/ikigai/map", {
+      const mapResponse = await fetch(`/api/ikigai/map/${user.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -72,29 +85,21 @@ export default function OnboardingPage() {
       });
 
       if (!mapResponse.ok) {
-        throw new Error("Failed to save Ikigai map");
+        const error = await mapResponse.text();
+        console.error("Map save error:", error);
+        throw new Error(`Failed to save Ikigai map: ${error}`);
       }
-
-      // Award initial achievements
-      await fetch("/api/gamification/progress", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user?.id,
-          type: "ACHIEVEMENT",
-          title: "Ikigai Explorer",
-          description: "Completed your first Ikigai assessment",
-          points: 100
-        }),
-      });
 
       // Show success message with confetti
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { x: 0.5, y: 0.6 }
+      });
+
+      toast({
+        title: "Success!",
+        description: "Your Ikigai assessment has been saved.",
       });
 
       // Move to dashboard after a brief delay
@@ -104,7 +109,10 @@ export default function OnboardingPage() {
 
     } catch (error) {
       console.error("Error in onboarding:", error);
-    } finally {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'An error occurred during onboarding',
+      });
       setLoading(false);
     }
   };

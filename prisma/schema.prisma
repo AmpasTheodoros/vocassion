@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,79 +7,70 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum PostType {
-  achievement
-  challenge
-  reflection
-  map
-}
-
-model Profile  {
-  id              String           @id @default(uuid())
-  userId          String           @unique
-  username        String           @unique
-  name            String?
-  slug            String           @unique
-  imageUrl        String?
-  email           String           @unique
-  bio             String?          @db.Text
-  headline        String?          @db.Text
-  location        String?
-  website         String?          @db.Text
-  github          String?
-  linkedin        String?
-
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-
-  rewards         Reward[]
-  ikigaiMap       IkigaiMap?
-  challenges      Challenge[]
-  achievements    Achievement[]
-  journalEntries  JournalEntry[]
-  communities     CommunityMember[]
-  streaks         Streak[]
-  dailyReflections DailyReflection[]
-  goals           Goal[]
-  resources       Resource[]
-  communityPosts  CommunityPost[]
-  mainGoals       MainGoal[]
-  progressLevels  ProgressLevel[]
-  penalties       Penalty[]
-  teamChallenges  TeamChallenge[]      @relation("CreatedChallenges")
+model Profile {
+  id                      String                     @id
+  userId                  String                     @unique
+  username                String                     @unique
+  name                    String?
+  slug                    String                     @unique
+  imageUrl                String?
+  email                   String                     @unique
+  bio                     String?
+  headline                String?
+  location                String?
+  website                 String?
+  github                  String?
+  linkedin                String?
+  createdAt               DateTime                   @default(now())
+  updatedAt               DateTime                   @updatedAt
+  achievements            Achievement[]
+  challenges              Challenge[]
+  comments                Comment[]
+  communities             CommunityMember[]
+  communityPosts          CommunityPost[]
+  postLikes               CommunityPostLike[]
+  dailyReflections        DailyReflection[]
+  feedbacks               Feedback[]
+  goals                   Goal[]
+  ikigaiMap               IkigaiMap?
+  journalEntries          JournalEntry[]
+  mainGoals               MainGoal[]
+  miniGames               MiniGame[]
+  penalties               Penalty[]
+  progressLevels          ProgressLevel[]
+  resources               Resource[]
+  rewards                 Reward[]
+  stories                 Story[]                    @relation("AuthoredStories")
+  streaks                 Streak[]
+  teamChallenges          TeamChallenge[]            @relation("CreatedChallenges")
   challengeParticipations TeamChallengeParticipant[]
-  postLikes       CommunityPostLike[]
-  feedbacks       Feedback[]
-  stories         Story[]    @relation("AuthoredStories")
-  comments        Comment[]
-  miniGames       MiniGame[]
 }
 
 model IkigaiMap {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  passions    String[] // What you love
-  skills      String[] // What you're good at
-  mission     String[] // What the world needs
-  vocation    String[] // What you can be paid for
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        Profile  @relation(fields: [userId], references: [id])
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  passion    String[]
+  profession String[]
+  mission    String[]
+  vocation   String[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       Profile  @relation(fields: [userId], references: [userId])
 }
 
 model Challenge {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   title       String
   description String
-  type        String   // daily, weekly, milestone
-  status      String   // active, completed, failed
+  type        String
+  status      String
   points      Int
   startDate   DateTime
   endDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        Profile  @relation(fields: [userId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        Profile   @relation(fields: [userId], references: [userId])
 }
 
 model Achievement {
@@ -93,29 +78,29 @@ model Achievement {
   userId      String
   title       String
   description String
-  category    String   // skill, passion, mission, vocation
+  category    String
   points      Int
   unlockedAt  DateTime @default(now())
-  user        Profile  @relation(fields: [userId], references: [id])
+  user        Profile  @relation(fields: [userId], references: [userId])
 }
 
 model JournalEntry {
-  id          String   @id @default(cuid())
-  userId      String
-  content     String   @db.Text
-  mood        String?
-  tags        String[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        Profile  @relation(fields: [userId], references: [id])
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  mood      String?
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      Profile  @relation(fields: [userId], references: [userId])
 }
 
 model Community {
-  id          String    @id @default(cuid())
+  id          String            @id @default(cuid())
   name        String
-  description String    @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  description String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   members     CommunityMember[]
   posts       CommunityPost[]   @relation("CommunityPosts")
 }
@@ -124,24 +109,24 @@ model CommunityMember {
   id          String    @id @default(cuid())
   userId      String
   communityId String
-  role        String    // member, moderator, admin
+  role        String
   joinedAt    DateTime  @default(now())
-  user        Profile   @relation(fields: [userId], references: [id])
   community   Community @relation(fields: [communityId], references: [id])
+  user        Profile   @relation(fields: [userId], references: [userId])
 
   @@unique([userId, communityId])
 }
 
 model Streak {
-  id          String   @id @default(cuid())
-  userId      String
-  type        String   // daily_reflection, challenge_completion, etc.
-  currentCount Int     @default(0)
-  longestCount Int     @default(0)
-  lastCheckin DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        Profile  @relation(fields: [userId], references: [id])
+  id           String   @id @default(cuid())
+  userId       String
+  type         String
+  currentCount Int      @default(0)
+  longestCount Int      @default(0)
+  lastCheckin  DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         Profile  @relation(fields: [userId], references: [userId])
 
   @@unique([userId, type])
 }
@@ -152,52 +137,55 @@ model Reward {
   description String
   points      Int
   createdAt   DateTime @default(now())
-  user        Profile  @relation(fields: [userId], references: [id])
+  user        Profile  @relation(fields: [userId], references: [userId])
 }
 
 model DailyReflection {
-  id          String   @id @default(cuid())
-  userId      String
-  content     String   @db.Text
-  mood        String
-  gratitude   String?  @db.Text
-  challenges  String?  @db.Text
-  wins        String?  @db.Text
-  createdAt   DateTime @default(now())
-  user        Profile  @relation(fields: [userId], references: [id])
+  id         String   @id @default(cuid())
+  userId     String
+  content    String
+  mood       String
+  gratitude  String
+  challenges String
+  wins       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  profile    Profile  @relation(fields: [userId], references: [userId])
+
+  @@index([userId])
 }
 
 model Goal {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   title       String
-  description String   @db.Text
-  category    String   // passion, skill, mission, vocation
-  status      String   // active, completed, abandoned
+  description String
+  category    String
+  status      String
   deadline    DateTime?
-  progress    Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        Profile  @relation(fields: [userId], references: [id])
+  progress    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        Profile   @relation(fields: [userId], references: [userId])
   tasks       Task[]
 }
 
 model Task {
-  id          String   @id @default(cuid())
-  goalId      String
-  title       String
-  completed   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  goal        Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  goalId    String
+  title     String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
 }
 
 model Resource {
   id          String   @id @default(cuid())
   title       String
-  description String   @db.Text
-  type        String   // job, course, volunteer
-  category    String   // skill, passion, mission, vocation
+  description String
+  type        String
+  category    String
   url         String
   tags        String[]
   likes       Int      @default(0)
@@ -205,175 +193,182 @@ model Resource {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String
-  user        Profile  @relation(fields: [userId], references: [id])
+  user        Profile  @relation(fields: [userId], references: [userId])
 }
 
 model Story {
-  id          String   @id @default(cuid())
-  title       String
-  content     String   @db.Text
-  authorId    String
-  tags        String[]
-  likes       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  author      Profile  @relation("AuthoredStories", fields: [authorId], references: [id])
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  authorId  String
+  tags      String[]
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    Profile  @relation("AuthoredStories", fields: [authorId], references: [userId])
 }
 
 model MiniGame {
   id          String   @id @default(cuid())
   title       String
-  description String   @db.Text
-  type        String   // brainstorming, problem-solving
-  category    String   // skill, passion, mission, vocation
+  description String
+  type        String
+  category    String
   content     Json
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   plays       Int      @default(0)
   userId      String
-  user        Profile  @relation(fields: [userId], references: [id])
+  user        Profile  @relation(fields: [userId], references: [userId])
 }
 
 model CommunityPost {
-  id          String    @id @default(cuid())
+  id          String              @id @default(cuid())
   title       String
-  content     String    @db.Text
-  type        PostType  @default(reflection)
+  content     String
+  type        PostType            @default(reflection)
   userId      String
   communityId String
-  likeCount   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  user        Profile   @relation(fields: [userId], references: [id])
-  community   Community @relation("CommunityPosts", fields: [communityId], references: [id])
+  likeCount   Int                 @default(0)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
   comments    Comment[]
+  community   Community           @relation("CommunityPosts", fields: [communityId], references: [id])
+  user        Profile             @relation(fields: [userId], references: [userId])
   userLikes   CommunityPostLike[]
 }
 
 model Comment {
-  id            String       @id @default(cuid())
-  postId        String
-  userId        String
-  content       String       @db.Text
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  post          CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user          Profile      @relation(fields: [userId], references: [id])
+  id        String        @id @default(cuid())
+  postId    String
+  userId    String
+  content   String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      Profile       @relation(fields: [userId], references: [userId])
 }
 
 model MainGoal {
-  id            String    @id @default(cuid())
-  userId        String
-  title         String
-  description   String    @db.Text
-  category      String    // passion, skill, mission, vocation
-  difficulty    String    // easy, medium, hard
-  status        String    // active, completed, failed
-  progress      Int       @default(0)
-  pointsCost    Int      // points needed to unlock
-  pointsReward  Int      // points earned upon completion
-  deadline      DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  user          Profile   @relation(fields: [userId], references: [id])
-  subGoals      SubGoal[]
-  feedback      Feedback[]
+  id           String     @id @default(cuid())
+  userId       String
+  title        String
+  description  String
+  category     String
+  difficulty   String
+  status       String
+  progress     Int        @default(0)
+  pointsCost   Int
+  pointsReward Int
+  deadline     DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  feedback     Feedback[]
+  user         Profile    @relation(fields: [userId], references: [userId])
+  subGoals     SubGoal[]
 }
 
 model SubGoal {
-  id            String    @id @default(cuid())
-  mainGoalId    String
-  title         String
-  description   String    @db.Text
-  order         Int       // sequence order in the main goal
-  status        String    // active, completed, failed
-  progress      Int       @default(0)
-  pointsReward  Int
-  deadline      DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  mainGoal      MainGoal  @relation(fields: [mainGoalId], references: [id], onDelete: Cascade)
-  milestones    Milestone[]
+  id           String      @id @default(cuid())
+  mainGoalId   String
+  title        String
+  description  String
+  order        Int
+  status       String
+  progress     Int         @default(0)
+  pointsReward Int
+  deadline     DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  milestones   Milestone[]
+  mainGoal     MainGoal    @relation(fields: [mainGoalId], references: [id], onDelete: Cascade)
 }
 
 model Milestone {
-  id            String    @id @default(cuid())
-  subGoalId     String
-  title         String
-  description   String?   @db.Text
-  isCompleted   Boolean   @default(false)
-  pointsReward  Int
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  subGoal       SubGoal   @relation(fields: [subGoalId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  subGoalId    String
+  title        String
+  description  String?
+  isCompleted  Boolean  @default(false)
+  pointsReward Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  subGoal      SubGoal  @relation(fields: [subGoalId], references: [id], onDelete: Cascade)
 }
 
 model Feedback {
-  id            String    @id @default(cuid())
-  mainGoalId    String
-  userId        String
-  content       String    @db.Text
-  type          String    // encouragement, suggestion, celebration
-  createdAt     DateTime  @default(now())
-  mainGoal      MainGoal  @relation(fields: [mainGoalId], references: [id])
-  user          Profile   @relation(fields: [userId], references: [id])
+  id         String   @id @default(cuid())
+  mainGoalId String
+  userId     String
+  content    String
+  type       String
+  createdAt  DateTime @default(now())
+  mainGoal   MainGoal @relation(fields: [mainGoalId], references: [id])
+  user       Profile  @relation(fields: [userId], references: [userId])
 }
 
 model ProgressLevel {
-  id            String    @id @default(cuid())
-  userId        String
-  category      String    // skill, passion, mission, vocation
-  level         Int       @default(1)
-  currentXP     Int       @default(0)
-  requiredXP    Int
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  user          Profile   @relation(fields: [userId], references: [id])
+  id         String   @id @default(cuid())
+  userId     String
+  category   String
+  level      Int      @default(1)
+  currentXP  Int      @default(0)
+  requiredXP Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       Profile  @relation(fields: [userId], references: [userId])
 }
 
 model Penalty {
-  id            String    @id @default(cuid())
-  userId        String
-  reason        String
-  pointsLost    Int
-  createdAt     DateTime  @default(now())
-  user          Profile   @relation(fields: [userId], references: [id])
+  id         String   @id @default(cuid())
+  userId     String
+  reason     String
+  pointsLost Int
+  createdAt  DateTime @default(now())
+  user       Profile  @relation(fields: [userId], references: [userId])
 }
 
 model TeamChallenge {
-  id            String    @id @default(cuid())
-  creatorId     String
-  title         String
-  description   String    @db.Text
-  category      String    // skill, passion, mission, vocation
-  rewardPoints  Int
-  endDate       DateTime
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  participants  TeamChallengeParticipant[]
-  creator       Profile   @relation("CreatedChallenges", fields: [creatorId], references: [id])
+  id           String                     @id @default(cuid())
+  creatorId    String
+  title        String
+  description  String
+  category     String
+  rewardPoints Int
+  endDate      DateTime
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+  creator      Profile                    @relation("CreatedChallenges", fields: [creatorId], references: [userId])
+  participants TeamChallengeParticipant[]
 }
 
 model TeamChallengeParticipant {
-  id            String    @id @default(cuid())
-  challengeId   String
-  userId        String
-  joinedAt      DateTime  @default(now())
-  status        String    // active, completed, dropped
-  progress      Int       @default(0)
-  challenge     TeamChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-  user          Profile   @relation(fields: [userId], references: [id])
+  id          String        @id @default(cuid())
+  challengeId String
+  userId      String
+  joinedAt    DateTime      @default(now())
+  status      String
+  progress    Int           @default(0)
+  challenge   TeamChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user        Profile       @relation(fields: [userId], references: [userId])
 
   @@unique([challengeId, userId])
 }
 
 model CommunityPostLike {
-  id        String    @id @default(cuid())
+  id        String        @id @default(cuid())
   postId    String
   userId    String
-  createdAt DateTime  @default(now())
+  createdAt DateTime      @default(now())
   post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      Profile   @relation(fields: [userId], references: [id])
+  user      Profile       @relation(fields: [userId], references: [userId])
 
   @@unique([postId, userId])
+}
+
+enum PostType {
+  achievement
+  challenge
+  reflection
+  map
 }

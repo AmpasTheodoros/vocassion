@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { Brain, Briefcase, Heart, Bell, Calendar, Settings2, BarChart3 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from 'next/image';
+import { IkigaiMap } from "@/components/ikigai/ikigai-map";
 
 interface Resource {
   id: string;
@@ -29,6 +30,13 @@ interface Game {
   title: string;
   description: string;
   type: string;
+}
+
+interface IkigaiData {
+  passion: string[];
+  mission: string[];
+  profession: string[];
+  vocation: string[];
 }
 
 const DashboardMetric = ({ title, value, icon: Icon, description }: { 
@@ -101,21 +109,36 @@ export function PersonalizedDashboard() {
     resources: Resource[];
     stories: Story[];
     games: Game[];
+    ikigai?: IkigaiData;
   }>({
     resources: [],
     stories: [],
-    games: []
+    games: [],
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/personalization");
-        const result = await response.json();
-        setData(result);
+        const [personalizedResponse, ikigaiResponse] = await Promise.all([
+          fetch("/api/personalization"),
+          fetch(`/api/profile/${user?.id}/ikigai`)
+        ]);
+        
+        const personalizedData = await personalizedResponse.json();
+        const ikigaiData = await ikigaiResponse.json();
+        
+        console.log('Ikigai API Response:', ikigaiData); // Debug log
+        
+        const processedIkigai = processIkigaiData(ikigaiData);
+        console.log('Processed Ikigai Data:', processedIkigai); // Debug log
+        
+        setData({
+          ...personalizedData,
+          ikigai: processedIkigai
+        });
       } catch (error) {
-        console.error("Error fetching personalized content:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -125,6 +148,29 @@ export function PersonalizedDashboard() {
       fetchData();
     }
   }, [user]);
+
+  const processIkigaiData = (assessmentData: {
+    passion: string[];
+    mission: string[];
+    profession: string[];
+    vocation: string[];
+  }) => {
+    if (!assessmentData || Object.keys(assessmentData).length === 0) {
+      console.log('No assessment data found');
+      return null;
+    }
+    
+    const processed = {
+      passion: assessmentData.passion || [],
+      mission: assessmentData.mission || [],
+      profession: assessmentData.profession || [],
+      vocation: assessmentData.vocation || []
+    };
+    
+    // Check if we have any data
+    const hasData = Object.values(processed).some(arr => arr.length > 0);
+    return hasData ? processed : null;
+  };
 
   if (!user) return null;
 
@@ -165,6 +211,8 @@ export function PersonalizedDashboard() {
               src={user.imageUrl}
               alt={user.fullName || "User"}
               className="h-full w-full rounded-full object-cover"
+              width={48}
+              height={48}
             />
           </div>
           <div>
@@ -191,6 +239,32 @@ export function PersonalizedDashboard() {
         ))}
       </div>
 
+      {/* Ikigai Map Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            Your Ikigai Map
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="h-[400px] flex items-center justify-center">
+              <Skeleton className="w-full h-full rounded-lg" />
+            </div>
+          ) : data.ikigai ? (
+            <IkigaiMap data={data.ikigai} />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Complete your Ikigai assessment to see your map</p>
+              <Button variant="outline" className="mt-4">
+                Take Assessment
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Main Content Grid */}
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Resources Section */}
@@ -206,8 +280,8 @@ export function PersonalizedDashboard() {
               {loading ? (
                 <LoadingSkeleton />
               ) : (
-                data.resources?.slice(0, 3).map((resource) => (
-                  <div key={resource.id} className="flex items-center gap-4 rounded-lg border p-4">
+                data.resources?.slice(0, 3).map((resource, index) => (
+                  <div key={index} className="flex items-center gap-4 rounded-lg border p-4">
                     <div className="rounded-full bg-primary/10 p-2">
                       <Briefcase className="h-4 w-4" />
                     </div>
@@ -246,8 +320,8 @@ export function PersonalizedDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {data.stories?.slice(0, 3).map((story) => (
-                <div key={story.id} className="rounded-lg border p-4">
+              {data.stories?.slice(0, 3).map((story, index) => (
+                <div key={index} className="rounded-lg border p-4">
                   <h4 className="font-medium">{story.title}</h4>
                   <p className="text-sm text-muted-foreground line-clamp-2">{story.content}</p>
                   <p className="mt-2 text-xs text-muted-foreground">By {story.author.name}</p>
@@ -270,14 +344,14 @@ export function PersonalizedDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {data.games?.slice(0, 3).map((game) => (
-                <div key={game.id} className="flex items-center gap-4 rounded-lg border p-4">
+              {data.games?.slice(0, 3).map((game, index) => (
+                <div key={index} className="flex items-center gap-4 rounded-lg border p-4">
                   <div className="rounded-full bg-primary/10 p-2">
                     <Brain className="h-4 w-4" />
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium">{game.title}</h4>
-                    <p className="text-sm text-muted-foreground">{game.type}</p>
+                    <p className="text-sm text-muted-foreground">{game.description}</p>
                   </div>
                   <Button size="sm">Play</Button>
                 </div>

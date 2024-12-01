@@ -38,6 +38,8 @@ export default function NewReflectionPage() {
     setIsSubmitting(true);
 
     try {
+      console.log('Submitting form data:', form);
+
       const response = await fetch("/api/reflection/new", {
         method: "POST",
         headers: {
@@ -46,30 +48,42 @@ export default function NewReflectionPage() {
         body: JSON.stringify(form),
       });
 
-      if (response.ok) {
-        // Trigger celebration animation
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { x: 0.5, y: 0.6 },
-        });
+      const data = await response.json();
+      console.log('Response data:', data);
 
-        // Update streak and award points
-        await fetch("/api/gamification/progress", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            type: "daily_reflection",
-            points: 50,
-          }),
+      if (!response.ok) {
+        console.error('Response error:', {
+          status: response.status,
+          statusText: response.statusText,
+          data
         });
-
-        router.push("/dashboard");
+        throw new Error(data.error || data.details || 'Failed to submit reflection');
       }
+
+      // Trigger celebration animation
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { x: 0.5, y: 0.6 },
+      });
+
+      // Update streak and award points
+      await fetch("/api/gamification/progress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "daily_reflection",
+          points: 50,
+        }),
+      });
+
+      router.push("/dashboard");
     } catch (error) {
       console.error("Error submitting reflection:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit reflection';
+      alert(`Error: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
