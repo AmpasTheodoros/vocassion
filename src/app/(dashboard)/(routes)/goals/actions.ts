@@ -21,7 +21,7 @@ export const createGoal = async (values: GoalInput) => {
         return;
     }
 
-    return await db.goal.create({
+    await db.goal.create({
         data: {
             userId: userId.toString(),
             title: values.title,
@@ -31,4 +31,6 @@ export const createGoal = async (values: GoalInput) => {
             status: 'IN_PROGRESS',
         },
     });
+
+    redirect("/goals");
 };

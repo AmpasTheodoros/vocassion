@@ -2,7 +2,33 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 
-export async function GET(
+export async function GET(req: Request) {
+  try {
+    const auth = await getAuthUser();
+    
+    if (!auth?.user?.id) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    const userId = auth.user.id;
+
+    const mainGoals = await db.mainGoal.findMany({
+      where: {
+        userId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return NextResponse.json(mainGoals);
+  } catch (error) {
+    console.error("[GOALS_GET_ERROR]", error);
+    return new NextResponse("Internal Error", { status: 500 });
+  }
+}
+
+export async function GET_BY_ID(
   req: Request,
   { params }: { params: { goalId: string } }
 ) {
@@ -124,7 +150,7 @@ export async function POST(
         data: {
           mainGoalId: goalId,
           userId: profile.id,
-          content: "You've taken the first step! Let's achieve this goal together! 🚀",
+          content: "You've taken the first step! Let's achieve this goal together! ",
           type: "encouragement",
         },
       });

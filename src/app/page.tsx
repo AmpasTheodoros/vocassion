@@ -24,19 +24,23 @@ export default function Home() {
 
       try {
         setIsLoading(true);
+        console.log('Checking profile for user:', user.id);
         const res = await fetch(`/api/profile/${user.id}`);
         const data = await res.json();
+        console.log('Profile data:', data);
         
         if (res.ok) {
-          if (data.ikigaiMap) {
-            // If user has completed ikigai map, redirect to dashboard
+          // Check if user has ikigaiMap data
+          console.log('IkigaiMap data:', data.ikigaiMap);
+          if (data.ikigaiMap !== null && data.ikigaiMap !== undefined) {
+            console.log('User has completed Ikigai map, redirecting to dashboard');
             router.push('/dashboard');
           } else {
-            // If user exists but hasn't completed ikigai map
+            console.log('User exists but no Ikigai map, redirecting to onboarding');
             router.push('/onboarding');
           }
         } else if (res.status === 404) {
-          // If profile doesn't exist, redirect to onboarding
+          console.log('Profile not found, redirecting to onboarding');
           router.push('/onboarding');
         }
       } catch (error) {

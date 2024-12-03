@@ -1,6 +1,5 @@
 "use client";
 
-import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -58,7 +57,7 @@ export default function NewGoalPage() {
   async function onSubmit(values: FormData) {
     try {
       await createGoal(values);
-      redirect("/goals");
+      // The redirect will be handled by the server action
     } catch (error) {
       console.error("Failed to create goal:", error);
       // You might want to show an error toast here

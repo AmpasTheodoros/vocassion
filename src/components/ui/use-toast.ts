@@ -1,4 +1,5 @@
-// Copied from shadcn/ui (https://ui.shadcn.com/docs/components/toast)
+"use client";
+
 import * as React from "react"
 
 import type {

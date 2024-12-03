@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +23,7 @@ interface GoalTrackerProps {
   onAddGoal: () => void;
 }
 
-export const GoalTracker: React.FC<GoalTrackerProps> = ({
+const GoalTracker: React.FC<GoalTrackerProps> = ({
   goals,
   onGoalComplete,
   onAddGoal,
@@ -34,13 +36,14 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
       toast({
         title: "Goal completed!",
         description: "Congratulations on achieving your goal!",
+        variant: "default"
       });
     } catch (err) {
       console.error('Failed to complete goal:', err);
       toast({
         title: "Error",
         description: "Failed to mark goal as complete. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };

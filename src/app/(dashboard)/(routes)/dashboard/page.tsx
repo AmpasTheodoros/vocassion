@@ -12,7 +12,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChatComponent from '@/components/chat/ChatComponent';
 import { DailyChallenges } from "@/components/features/challenges/DailyChallenges";
-import { GoalTracker } from "@/components/features/goals/GoalTracker";
+import GoalTracker from "@/components/features/goals/GoalTracker";
 import { GamificationSystem } from "@/components/features/gamification/GamificationSystem";
 import { CommunityHub } from "@/components/community/CommunityHub";
 
@@ -65,7 +65,7 @@ interface DashboardData {
   stats: Stats;
 }
 
-export default function DashboardPage() {
+const DashboardPage = () => {
   const { user } = useUser();
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -261,3 +261,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+export default DashboardPage

@@ -11,20 +11,38 @@ export async function POST(req: Request) {
     }
 
     const userId = auth.user.id;
+    console.log('Processing Ikigai results for user:', userId);
 
     const { passion, profession, mission, vocation } = await req.json();
+    console.log('Received Ikigai data:', { passion, profession, mission, vocation });
 
     // Get or create user profile
-    const profile = await db.profile.findUnique({
+    let profile = await db.profile.findUnique({
       where: { userId },
       include: { ikigaiMap: true },
     });
 
+    console.log('Found profile:', profile);
+
     if (!profile) {
-      return new NextResponse("Profile not found", { status: 404 });
+      // Create a new profile if it doesn't exist
+      console.log('Creating new profile for user:', userId);
+      profile = await db.profile.create({
+        data: {
+          id: userId,
+          userId,
+          username: `user_${userId}`,
+          slug: `user_${userId}`,
+          email: auth.user.emailAddresses[0]?.emailAddress || '',
+          name: auth.user.firstName || 'Anonymous',
+        },
+        include: { ikigaiMap: true },
+      });
+      console.log('Created new profile:', profile);
     }
 
     // Create or update Ikigai map
+    console.log('Updating Ikigai map for profile:', profile.id);
     const ikigaiMap = await db.ikigaiMap.upsert({
       where: {
         userId: profile.id,
@@ -43,6 +61,8 @@ export async function POST(req: Request) {
         vocation,
       },
     });
+
+    console.log('Updated Ikigai map:', ikigaiMap);
 
     // Award achievement for completing assessment
     await db.achievement.create({
