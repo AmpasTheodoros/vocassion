@@ -139,6 +139,8 @@ export const userProgress = pgTable('user_progress', {
   }),
   hearts: integer('hearts').notNull().default(5),
   points: integer('points').notNull().default(0),
+  streak: integer('streak').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
 export const userProgressRelations = relations(userProgress, ({ one }) => ({

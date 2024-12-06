@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'
 import { SidebarItem } from './sidebar-item'
-import { ClerkLoaded, ClerkLoading, UserButton } from '@clerk/nextjs'
+import { ClerkLoaded, ClerkLoading, UserButton, SignOutButton } from '@clerk/nextjs'
 import { Loader } from 'lucide-react'
 
 type Props = {
@@ -21,7 +21,7 @@ export const Sidebar = ({ className }: Props) => {
         <div className='pt-8 pl-4 pb-7 flex items-center gap-x-3'>
           <Image src='/mascot.svg' alt='Mascot' height={40} width={40} />
           <h1 className='text-2xl font-extrabold text-green-600 tracking-wide'>
-            Vo
+            Vocassion
           </h1>
         </div>
       </Link>
@@ -34,13 +34,16 @@ export const Sidebar = ({ className }: Props) => {
         />
         <SidebarItem label='Quests' href='/quests' iconSrc='/quests.svg' />
         <SidebarItem label='Shop' href='/shop' iconSrc='/shop.svg' />
-      </div>
-      <div className='p-4'>
+        <SidebarItem label='Profile' href='/profile' iconSrc='/boy.svg' />
+        <SidebarItem label='Settings' href='/settings' iconSrc='/settings.svg' />
+        <SidebarItem label='Help' href='/help' iconSrc='/help.svg' />
         <ClerkLoading>
           <Loader className='h-5 w-5 text-muted-foreground animate-spin' />
         </ClerkLoading>
         <ClerkLoaded>
-          <UserButton />
+          <SignOutButton>
+            <SidebarItem label='Logout' href='#' iconSrc='/logout.svg' />
+          </SignOutButton>
         </ClerkLoaded>
       </div>
     </div>
